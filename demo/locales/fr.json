@@ -1,0 +1,6 @@
+{
+  "welcome": {
+    "description": "The welcome text on the demo page",
+    "message": "Bienvenue à cette démo !<br><a href=\"#\" onclick=\"alert('bad stuff is going to happen...');\">s'amuser!</a>"
+  }
+}
