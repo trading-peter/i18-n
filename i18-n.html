@@ -8,7 +8,7 @@ Or see the LICENSE file that comes with this code.
 <link rel="import" href="../dom-purify/dom-purify-behavior.html">
 
 <!--
-# `<i18-n>`
+# <i18-n>
 These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg).
 
 The system consists of two elements working together: '<i18-n>' and `<i18-n-domain>`
@@ -25,27 +25,24 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
 
 1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<i18-n>` will use the german translation.
 2. Throw `<i18-n>` element on your page. Optionally with a domain (by default they belong to `default`).
-```
-<i18-n-domain
-  messages-url="path/to/locales"
-  language="de"
-></i18-n-domain>
 
-<i18-n-domain
-  messages-url="path/to/some/other/locales"
-  domain="foobar"
-  language="de"
-></i18-n-domain>
+  <i18-n-domain
+    messages-url="path/to/locales"
+    language="de"
+  ></i18-n-domain>
 
-...
+  <i18-n-domain
+    messages-url="path/to/some/other/locales"
+    domain="foobar"
+    language="de"
+  ></i18-n-domain>
 
-<p>
-  <i18-n msgid="welcome-text">This will be replaced with the welcome text</i18-n>
-</p>
-<p>
-  <i18-n domain="foobar" msgid="welcome-text">This will be replaced with the translation string from <strong>path/to/some/other/locales/foobar-de.json</strong></i18-n>
-</p>
-```
+  <p>
+    <i18-n msgid="welcome-text">This will be replaced with the welcome text</i18-n>
+  </p>
+  <p>
+    <i18-n domain="foobar" msgid="welcome-text">This will be replaced with the translation string from <strong>path/to/some/other/locales/foobar-de.json</strong></i18-n>
+  </p>
 
 @element i18-n
 @demo demo/index.html
