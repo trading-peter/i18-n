@@ -99,6 +99,11 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
       this.domains[this.domain].instances.push(this);
     },
 
+    attached: function() {
+      var locale = this.domains[this.domain].activeLocale || 'en';
+      this.update(locale);
+    },
+
     /**
      * Get the translation string and replace the content of the element.
      * `dom-purify-behavior` is used to sanitize the html before it's inserted.

@@ -66,7 +66,8 @@ See the comments on the `<i18-n>` element for a simple example.
       domains: {
         'default': {
           locales: {},
-          instances: []   // Target `i18n-msg` elements for easy update
+          instances: [],   // Target `i18n-msg` elements for easy update
+          activeLocale: 'en'
         }
       }
     };
@@ -171,6 +172,7 @@ See the comments on the `<i18-n>` element for a simple example.
        */
       _localeChanged: function(newLocale, oldLocale) {
         if (this.getLocale(newLocale) != null) {
+          this.domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
           return;
         }
@@ -213,6 +215,7 @@ See the comments on the `<i18-n>` element for a simple example.
       _handleResponse: function(response) {
         var locale = response.detail.locale;
         this.domains[this.domain].locales[locale] = response.detail.response;
+        this.domains[this.domain].activeLocale = locale;
         this._updateInstances(locale);
 
         this.fire('i18-n-locale-ready', { 'domain': this.domain, 'locale': locale });
