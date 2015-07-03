@@ -67,6 +67,15 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
       },
 
       /**
+       * Shortcut property for `domain` and `msgid`.
+       * Use `domain-name.msgid` or just `msgid` to use default domain.
+       */
+      m: {
+        type: String,
+        value: null
+      },
+
+      /**
        * Language domain the element belongs to.
        * Only translation strings of that domain will be used.
        */
@@ -100,8 +109,25 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
     },
 
     attached: function() {
+      if (this.domain == 'default' && this.m && this.m.indexOf('.') != -1) {
+        var parts = this.m.split('.');
+        this.domain = parts[0];
+      }
+
+      if (!this.msgid && this.m) {
+        var parts = this.m.split('.');
+        if (parts.length > 0) {
+          parts.shift();
+          this.msgid = parts.join('.');
+        }
+      }
+
       var locale = this.domains[this.domain].activeLocale || 'en';
-      this.update(locale);
+
+      // Update the content already here if the locale is already loaded.
+      if (this.domains[this.domain].locales[locale]) {
+        this.update(locale);
+      }
     },
 
     /**
