@@ -98,6 +98,11 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
         return;
       }
 
+      if (this.domain == 'default' && this.m && this.m.indexOf('.') != -1) {
+        var parts = this.m.split('.');
+        this.domain = parts[0];
+      }
+
       this.domains = window.I18nCache.domains;
       if (!this.domains[this.domain]) {
         this.domains[this.domain] = {
@@ -109,11 +114,6 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
     },
 
     attached: function() {
-      if (this.domain == 'default' && this.m && this.m.indexOf('.') != -1) {
-        var parts = this.m.split('.');
-        this.domain = parts[0];
-      }
-
       if (!this.msgid && this.m) {
         var parts = this.m.split('.');
         if (parts.length > 0) {
