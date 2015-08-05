@@ -130,7 +130,7 @@ See the comments on the `<i18-n>` element for a simple example.
         }
 
         var lang = this.domains[domain].locales[locale];
-        if (lang && lang[msgId]) {
+        if (lang[msgId] && lang[msgId].message != undefined) {
           return lang[msgId].message;
         }
         return null;
@@ -151,11 +151,7 @@ See the comments on the `<i18-n>` element for a simple example.
           return null;
         }
 
-        var lang = this.domains[domain].locales[locale];
-        if (lang) {
-          return lang;
-        }
-        return null;
+        return this.domains[domain].locales[locale];
       },
 
       /**
