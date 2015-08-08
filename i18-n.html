@@ -110,10 +110,12 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
           instances: []
         };
       }
-      this.domains[this.domain].instances.push(this);
     },
 
     attached: function() {
+      // Register instance to the domain.
+      this.domains[this.domain].instances.push(this);
+
       if (!this.msgid && this.m) {
         var parts = this.m.split('.');
         if (parts.length > 0) {
@@ -127,6 +129,16 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
       // Update the content already here if the locale is already loaded.
       if (this.domains[this.domain].locales[locale]) {
         this.update(locale);
+      }
+    },
+
+    detached: function() {
+      var instances = this.domains[this.domain].instances;
+      for (var i = 0, li = instances.length; i < li; ++i) {
+        if (instances[i] === this) {
+          instances.splice(i, 1);
+          break;
+        }
       }
     },
 
