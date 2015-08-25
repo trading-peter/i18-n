@@ -11,38 +11,37 @@ Or see the LICENSE file that comes with this code.
 # <i18-n>
 These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg).
 
-The system consists of two elements working together: '<i18-n>' and `<i18-n-domain>`
+The system consists of two elements working together: `<i18-n>` and `<i18-n-domain>`
 
 All `<i18-n>` elements replace their content with translated strings from a `I18nCache` global, filled by `<i18-n-domain>` element(s).
 `<i18-n>` elements can also define a language domain they belong to and will only be filled with translation string from that domain.
 
 <strong>Notes:</strong>
-- This element doesn't load locale files on it's own.
 - The language to display isn't set on the `<i18-n>` elements but on the `<i18-n-domain>`.
 - All assigned `<i18-n>` elements are automatically updated after the locale was changed on the domain element.
 
 ## Example
 
-1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<i18-n>` will use the german translation.
+1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<i18-n>` will use the german translations.
 2. Throw `<i18-n>` element on your page. Optionally with a domain (by default they belong to `default`).
 
+```html
   <i18-n-domain
     messages-url="path/to/locales"
-    language="de"
-  ></i18-n-domain>
+    language="de"></i18-n-domain>
 
   <i18-n-domain
     messages-url="path/to/some/other/locales"
     domain="foobar"
-    language="de"
-  ></i18-n-domain>
+    language="de"></i18-n-domain>
 
   <p>
-    <i18-n msgid="welcome-text">This will be replaced with the welcome text</i18-n>
+    <i18-n msgid="welcome-text">This will be replaced with the welcome text from the default domain.</i18-n>
   </p>
   <p>
     <i18-n domain="foobar" msgid="welcome-text">This will be replaced with the translation string from <strong>path/to/some/other/locales/foobar-de.json</strong></i18-n>
   </p>
+```
 
 @element i18-n
 @demo demo/index.html
