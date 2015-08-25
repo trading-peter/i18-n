@@ -99,9 +99,7 @@ See the comments on the `<i18-n>` element for a simple example.
          * The default locale being used.
          */
         locale: {
-          type: String,
-          value: 'en',
-          observer: '_localeChanged'
+          type: String
         },
 
         /**
@@ -113,6 +111,10 @@ See the comments on the `<i18-n>` element for a simple example.
           observer: '_messagesUrlChanged'
         }
       },
+
+      observers: [
+        '_shouldFetch(locale, messagesUrl)'
+      ],
 
       // Reference to the global `I18nCache.domains` object
       domains: window.I18nCache.domains,
@@ -159,27 +161,28 @@ See the comments on the `<i18-n>` element for a simple example.
       },
 
       /**
-       * Fetch locale file after the messages url was changed.
+       * Only fetch if a locale and a location is set.
        */
-      _messagesUrlChanged: function() {
-        this.async(function() {
-          this._fetchLocale(this.locale);
-        });
-      },
-
-      /**
-       * Fetch locale (if necessary) and update `<i18-n>` elements.
-       */
-      _localeChanged: function(newLocale, oldLocale) {
+      _shouldFetch: function(newLocale, messagesUrl) {
         if (this.getLocale(newLocale) != null) {
           this.domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
           return;
         }
 
-        if (oldLocale) {  // Don't fetch on the first change. The messagesUrl change does that already.
-          this.async(function() {
-            this._fetchLocale(newLocale);
+        this.async(function() {
+          this._fetchLocale(newLocale);
+        });
+      },
+
+      /**
+       * Fetch locale file after the messages url was changed.
+       */
+      _messagesUrlChanged: function(newUrl, oldUrl) {
+        if (oldUrl) {
+          this.async(function () {
+            // Forced fetch of the locale file.
+            this._fetchLocale(this.locale, true);
           });
         }
       },
@@ -187,8 +190,8 @@ See the comments on the `<i18-n>` element for a simple example.
       /**
        * Uses `iron-ajax` to fetch the locale file.
        */
-      _fetchLocale: function(locale) {
-        if (this.getLocale(locale) != null) {
+      _fetchLocale: function(locale, force) {
+        if (this.getLocale(locale) != null && force !== true) {
           return; // Don't fetch if the locale is already defined in the global object.
         }
 
