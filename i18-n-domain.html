@@ -11,10 +11,11 @@ Or see the LICENSE file that comes with this code.
 # <i18-n-domain>
 These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg).
 
-The system consists of two elements working together: '<i18-n>' and `<i18-n-domain>`
+The system consists of two elements working together: `<i18-n>` and `<i18-n-domain>`
 
 You need at least one `<i18-n-domain>` in your document. It loads the locale file via `<iron-ajax>` and fills a `I18nCache` global with the translation strings.
-As the name suggests, this element also provides a language domain (named `default` if no other name was set).
+As the name suggests, this element also provides a language domain (named `default` if no other was set).
+
 `<i18-n>` elements can define a language domain they belong to and will only be filled with translation string from that domain.
 
 The domain element provides some public methods to get translation strings.
@@ -25,10 +26,12 @@ Locale files of the `default` domain must use the locale as the filename:
 `lang/en.json`, `lang/de.json`, `lang/fr.json`
 
 Locale files of any domain other than `default` must prepend the domain name followed by a `-`:
-`lang/mydomain-en.json`, `lang/mydomain-de.json`, `lang/mydomain-fr.json`
+
+"`lang/mydomain-en.json`", "`lang/mydomain-de.json`" or "`lang/mydomain-fr.json`"
 
 ### Example of a locale file
 
+```json
 {
   "welcome-text": {
     "description": "some description for internal use",
@@ -39,6 +42,7 @@ Locale files of any domain other than `default` must prepend the domain name fol
     "message": "Goodbye!"
   }
 }
+```
 
 ## Example
 See the comments on the `<i18-n>` element for a simple example.
@@ -76,9 +80,9 @@ See the comments on the `<i18-n>` element for a simple example.
       is: 'i18-n-domain',
 
       /**
-       * The `i18n-locale-ready` is fired after the locale was fetched and all `<i18n-msg>` elements were updated.
+       * The `i18-n-locale-ready` is fired after the locale was fetched and all `<i18n-msg>` elements were updated.
        *
-       * @event i18n-locale-ready
+       * @event i18-n-locale-ready
        * @detail {{locale: String}}
        */
 
