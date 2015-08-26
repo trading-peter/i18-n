@@ -167,6 +167,7 @@ See the comments on the `<i18-n>` element for a simple example.
         if (this.getLocale(newLocale) != null) {
           this.domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
+          this.fire('i18-n-locale-ready', { 'domain': this.domain, 'locale': newLocale });
           return;
         }
 
