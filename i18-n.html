@@ -20,8 +20,11 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
 <strong>Notes:</strong>
 - The language to display isn't set on the `<i18-n>` elements but on the `<i18-n-domain>`.
 - All assigned `<i18-n>` elements are automatically updated after the locale was changed on the domain element.
+- Each `<i18-n>` kowns three modes: `Simple` mode, `Simple Provider` mode and `List Provider` mode. See examples how it works.
 
-## Example
+## Example: Simple Mode
+
+That is, `<i18-n>` translates exactly one message and displays it.
 
 1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<i18-n>` will use the german translations.
 2. Throw `<i18-n>` element on your page. Optionally with a domain (by default they belong to `default`).
@@ -41,6 +44,48 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
   </p>
   <p>
     <i18-n domain="foobar" msgid="welcome-text">This will be replaced with the translation string from <strong>path/to/some/other/locales/foobar-de.json</strong></i18-n>
+  </p>
+```
+
+## Example: Simple Provider Mode
+
+That is, `<i18-n>` translates exactly one message but doesn't displays it.
+Insteat you use its `value` attribute to do something with the translated string, like injecting it into an attribute of another element.
+
+```html
+  Create your i18-n-domain element here (see first example)
+
+  <p>
+    The label is set by the i18-n.
+    <paper-input label="[[username]]"></paper-input>
+  </p>
+  <p>
+    This i18-n doesn't show the translation but you can use it's *value* attribute.
+    <i18-n provider domain="foobar" msgid="username" value="{{username}}"></i18-n>
+  </p>
+```
+
+## Example: List Provider Mode
+
+That is, `<i18-n>` translates a list of message. It doesn't show the list, but you can access it via the `value` property.
+In this mode the `msgid` property is ignored. Instead use the `provide` property to define the list you need.
+
+```html
+  Create your i18-n-domain element here (see first example)
+
+  <p>
+    The label is set by the i18-n.
+    <paper-input label="[[translations.username]]"></paper-input>
+    <paper-input label="[[translations.password]]"></paper-input>
+  </p>
+  <p>
+    This i18-n provides a list of translations.
+    <i18-n provider provide='["username", "password"]' value="{{translations}}"></i18-n>
+    'translations' equals: { "username" : "...", "password" : "..." }
+
+    Alternatively you can set 'provide' to '["*"]' and get all translations.
+    <i18-n provider provide='["*"]' value="{{allStrings}}"></i18-n>
+    'allStrings' equals: { "translation1" : "...", "translation2" : "...", "translation3" : "...", "username" : "...", "password" : "..." }
   </p>
 ```
 
@@ -82,6 +127,37 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
       domain: {
         type: String,
         value: 'default'
+      },
+
+      /**
+       * If true, the element acts as a provider.
+       * Depending on `provide` and `msgid` it acts as a simple provider or list provider.
+       */
+      provider: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Array of msgid's the element should translate and provide in its `value` property.
+       * If first value equals '*' all translations are provided.
+       */
+      provide: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+
+      /**
+       * Holds translated message or an object with all requested translations,
+       * depending on the mode the element operates in.
+       */
+      value: {
+        type: String,
+        value: null,
+        readOnly: true,
+        notify: true
       }
     },
 
@@ -147,12 +223,44 @@ All `<i18-n>` elements replace their content with translated strings from a `I18
      * `dom-purify-behavior` is used to sanitize the html before it's inserted.
      */
     update: function(locale) {
+      if (this.provider && this.provide.length > 0) {
+        this._updateProvider(locale);
+        return;
+      }
+
       var msg = this.domains[this.domain].locales[locale][this.msgid];
       if (msg && msg.message) {
-        this.innerHTML = this.sanitizeHtml(msg.message);
+        this._setValue(this.sanitizeHtml(msg.message));
+        if (!this.provider) {
+          this.innerHTML = this.value;
+        }
       } else {
         console.warn(this.localName + ': "' + this.msgid + '" message id was not found');
       }
+    },
+
+    _updateProvider: function(locale) {
+      var locale = this.domains[this.domain].locales[locale];
+      var values = {};
+
+      if (this.provide[0] == '*') {
+        for (var m in locale) {
+          values[m] = locale[m].message;
+        }
+      } else {
+        for (var i in this.provide) {
+          var msgId = this.provide[i];
+          var msg = locale[msgId];
+          if (!msg || !msg.message) {
+            console.warn(this.localName + ': "' + msgId + '" message id was not found');
+            continue;
+          }
+
+          values[msgId] = msg.message;
+        }
+      }
+
+      this._setValue(values);
     }
   });
 </script>
