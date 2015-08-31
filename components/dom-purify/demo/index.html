@@ -1,0 +1,67 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>dom-purify demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../dom-purify.html">
+
+    <style>
+      dom-purify {
+        border: solid 1px #18850a;
+        background-color: rgba(116, 193, 135, 0.39);
+        padding: 20px;
+        display: block;
+      }
+
+      label {
+        display: block;
+        margin-top: 30px;
+      }
+
+      .danger {
+        padding: 20px;
+        border: solid 1px rgb(215, 62, 29);
+        background-color: rgba(255, 0, 0, 0.29);
+      }
+    </style>
+  </head>
+  <body>
+    <label>The following <strong>dom-purify</strong> element allows only <strong>p</strong>-tags. The links are stripped out.</label>
+    <dom-purify sanitize-options='{"ALLOWED_TAGS": ["p"]}'>
+      <p>
+        That would be some <a href="#" onclick="alert('hallo');">link</a> with a onclick event, but it's removed.
+      </p>
+      <p>
+        This is a link to <a href="https://www.google.de" target="_blank" onclick="alert('hallo');">google</a>. But it's also removed.
+      </p>
+    </dom-purify>
+
+    <label>The following <strong>dom-purify</strong> runs with default options. The javascript is removed from the links.</label>
+    <dom-purify>
+      <p>
+        That would be some <a href="#" onclick="alert('hallo');">link</a> with a onclick event, but it's removed.
+      </p>
+      <p>
+        This is a link to <a href="https://www.google.de" target="_blank" onclick="alert('hallo');">google</a>. This works, but the onclick event was removed.
+      </p>
+    </dom-purify>
+
+    <label>The following is the same content as above but not in a <strong>dom-purify</strong> element. The javascript is executed.</label>
+    <div class="danger">
+      <p>
+        That would be some <a href="#" onclick="alert('ah... you clicked...');">link</a> with a onclick event, but it's removed.
+      </p>
+      <p>
+        This is a link to <a href="https://www.google.de" target="_blank" onclick="alert('do something bad here');">google</a>. This works, but the onclick event was removed.
+      </p>
+    </div>
+  </body>
+</html>

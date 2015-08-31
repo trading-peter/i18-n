@@ -1,0 +1,43 @@
+{
+  "name": "i18-n",
+  "authors": [
+    "Peter Kaske <p.kaske@gmail.com>"
+  ],
+  "description": "Translation elements build with polymer.",
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "i18n",
+    "i10n",
+    "localization",
+    "internationalization",
+    "translation"
+  ],
+  "main": "i18-n-domain.html",
+  "license": "MIT",
+  "homepage": "https://github.com/pkaske/i18-n/",
+  "ignore": [
+    "/.*",
+    "/tests/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
+    "dom-purify": "pkaske/dom-purify#^0.1.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "Polymer/web-component-tester#master"
+  },
+  "_release": "9c2982ca2a",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9c2982ca2a36d1996c0352298aad8673eceae082"
+  },
+  "_source": "git://github.com/pkaske/i18-n.git",
+  "_target": "master",
+  "_originalSource": "pkaske/i18-n",
+  "_direct": true
+}

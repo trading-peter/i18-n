@@ -1,0 +1,34 @@
+<script type="text/javascript" src="../dompurify/purify.js"></script>
+
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<script>
+  if (Polymer.DomPurifyBehavior) {
+    console.warn('DomPurifyBehavior is already implemented in Polymer!');
+  }
+
+  Polymer.DomPurifyImpl = {
+    properties: {
+      sanitizeOptions: {
+        type: Object,
+        value: {}
+      }
+    },
+
+    innerSanitizedHtml: function() {
+      this.innerHTML = DOMPurify.sanitize(this.innerHTML, this.sanitizeOptions);
+    },
+
+    sanitizeHtml: function(dirtyHtml) {
+      return DOMPurify.sanitize(dirtyHtml, this.sanitizeOptions);
+    }
+  };
+
+  Polymer.DomPurifyBehavior = [
+    Polymer.DomPurifyImpl
+  ];
+</script>

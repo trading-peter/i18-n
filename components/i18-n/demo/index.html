@@ -1,0 +1,68 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>i18-n demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../i18-n.html">
+    <link rel="import" href="../i18-n-domain.html">
+  </head>
+  <body>
+    <!-- Provides the 'default' domain in english -->
+    <i18-n-domain id="i18nDomain"
+      messages-url="locales">
+    </i18-n-domain>
+
+    <!-- Provides the 'demo-domain' domain in german -->
+    <i18-n-domain id="demoDomain"
+      domain="demo-domain"
+      locale="de"
+      messages-url="locales">
+    </i18-n-domain>
+
+    <div>
+      <label for="">Choose language for default domain</label>
+      <select id="langSelector">
+        <option selected>en</option>
+        <option>es</option>
+        <option>fr</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="">Choose language for 'demo-domain' domain</label>
+      <select id="langSelectorDomain">
+        <option>en</option>
+        <option selected>de</option>
+      </select>
+    </div>
+
+    <p style="margin-top: 50px;">Locale domain: <strong>default</strong></p>
+    <i18-n msgid="welcome">This is some placeholder text. It's msgid is 'welcome'.</i18-n>
+
+    <p style="margin-top: 50px;">Locale domain: <strong>demo-domain</strong></p>
+    <i18-n m="demo-domain.special">The special text will appear here...</i18-n>
+
+    <script>
+      var i18nDomain = document.querySelector('#i18nDomain');
+      var demoDomain = document.querySelector('#demoDomain');
+      var langSelector = document.querySelector('#langSelector');
+      var langSelectorDemo = document.querySelector('#langSelectorDomain');
+
+      langSelector.addEventListener('change', function() {
+        i18nDomain.locale = this.value;
+      });
+
+      langSelectorDemo.addEventListener('change', function() {
+        demoDomain.locale = this.value;
+      });
+    </script>
+  </body>
+</html>
