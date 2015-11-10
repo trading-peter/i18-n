@@ -229,7 +229,14 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
       }
 
       var msg = this.domains[this.domain].locales[locale][this.msgid];
-      if (msg && msg.message) {
+      if (msg) {
+        if(msg.message==undefined) {
+          if (typeof msg === 'string') {
+            msg = {message:msg};
+            this.domains[this.domain].locales[locale][this.msgid] = msg;
+          }
+          else return null;
+        }
         this._setValue(this.sanitizeHtml(msg.message));
         if (!this.provider) {
           this.innerHTML = this.value;

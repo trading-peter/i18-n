@@ -54,9 +54,9 @@ See the comments on the `<i18-n>` element for a simple example.
 <dom-module id="i18-n-domain">
   <template>
     <iron-ajax id="ajax"
-      url="{{messagesUrl}}"
-      handle-as="json"
-      on-response="_handleResponse"></iron-ajax>
+               url="{{messagesUrl}}"
+               handle-as="json"
+               on-response="_handleResponse"></iron-ajax>
   </template>
 </dom-module>
 <script>
@@ -66,15 +66,15 @@ See the comments on the `<i18-n>` element for a simple example.
      * The global cache for all locales loaded.
      */
     window.I18nCache = window.I18nCache || {
-      // The default domain is named 'default'
-      domains: {
-        'default': {
-          locales: {},
-          instances: [],   // Target `i18n-msg` elements for easy update
-          activeLocale: 'en'
-        }
-      }
-    };
+              // The default domain is named 'default'
+              domains: {
+                'default': {
+                  locales: {},
+                  instances: [],   // Target `i18n-msg` elements for easy update
+                  activeLocale: 'en'
+                }
+              }
+            };
 
     Polymer({
       is: 'i18-n-domain',
@@ -136,8 +136,14 @@ See the comments on the `<i18-n>` element for a simple example.
         }
 
         var lang = this.domains[domain].locales[locale];
-        if (lang[msgId] && lang[msgId].message != undefined) {
+        if (lang[msgId]) {
+          if (lang[msgId].message == undefined) {
+            if (typeof lang[msgId] === 'string')
+              lang[msgId] = {message:lang[msgId]};
+            else return null;
+          }
           return lang[msgId].message;
+
         }
         return null;
       },
@@ -198,9 +204,9 @@ See the comments on the `<i18-n>` element for a simple example.
 
         // Initiate or get the domain object
         var domainObj = this.domains[this.domain] || {
-          locales: {},
-          instances: []
-        };
+                  locales: {},
+                  instances: []
+                };
 
         // Set the locale we're about to fetch. This prevents duplicate requests by other `i18-n-domain` elements.
         domainObj.locales[locale] = {};
