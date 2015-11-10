@@ -1,8 +1,9 @@
 {
   "name": "i18-n",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "authors": [
-    "Peter Kaske <p.kaske@gmail.com>"
+    "Peter Kaske <p.kaske@gmail.com>",
+    "Christoph Sonntag <Compufreak345@gmail.com>"
   ],
   "description": "Translation elements build with polymer.",
   "keywords": [
