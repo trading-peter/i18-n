@@ -198,6 +198,7 @@ See the comments on the `<i18-n>` element for a simple example.
        * Uses `iron-ajax` to fetch the locale file.
        */
       _fetchLocale: function(locale, force) {
+        if(!locale) return;
         if (this.getLocale(locale) != null && force !== true) {
           return; // Don't fetch if the locale is already defined in the global object.
         }
