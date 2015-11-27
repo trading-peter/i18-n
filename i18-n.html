@@ -255,7 +255,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
 
       if (this.provide[0] == '*') {
         for (var m in locale) {
-          values[m] = locale[m].message;
+          values[m] = this.sanitizeHtml(locale[m].message);
         }
       } else {
         for (var i in this.provide) {
@@ -267,7 +267,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
             continue;
           }
 
-          values[msgId] = msg.message;
+          values[msgId] = this.sanitizeHtml(msg.message);
         }
       }
 
