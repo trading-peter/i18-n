@@ -65,16 +65,7 @@ See the comments on the `<i18-n>` element for a simple example.
     /**
      * The global cache for all locales loaded.
      */
-    window.I18nCache = window.I18nCache || {
-              // The default domain is named 'default'
-              domains: {
-                'default': {
-                  locales: {},
-                  instances: [],   // Target `i18n-msg` elements for easy update
-                  activeLocale: 'en'
-                }
-              }
-            };
+    window.I18nCache = window.I18nCache || { domains: {} };
 
     Polymer({
       is: 'i18-n-domain',
@@ -99,7 +90,8 @@ See the comments on the `<i18-n>` element for a simple example.
          * The default locale being used.
          */
         locale: {
-          type: String
+          type: String,
+          value: 'en'
         },
 
         /**
@@ -110,6 +102,28 @@ See the comments on the `<i18-n>` element for a simple example.
           value: 'lang',
           observer: '_messagesUrlChanged'
         }
+      },
+
+      // Initiate or get the domain object
+      attached: function() {
+        if (this.domains[this.domain]) {
+          /* Track currently attached `i18-n-domain` element.
+             There may be multiple domain objects created
+             but they all share the same `instances` and `locales`
+             So it won't matter which one of them is tracked. */
+          this.domains[this.domain].domainElement = this;
+        } else {
+          this.domains[this.domain] = {
+            locales: {},
+            instances: [],
+            domainElement: this
+          };
+        }
+      },
+
+      detached: function() {
+        // Once detached noone should use `this`
+        delete this.domains[this.domain];
       },
 
       observers: [
@@ -170,6 +184,7 @@ See the comments on the `<i18-n>` element for a simple example.
        * Only fetch if a locale and a location is set.
        */
       _shouldFetch: function(newLocale, messagesUrl) {
+        console.log(this.domain + " " + newLocale);
         if (this.getLocale(newLocale) != null) {
           this.domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
@@ -203,15 +218,8 @@ See the comments on the `<i18-n>` element for a simple example.
           return; // Don't fetch if the locale is already defined in the global object.
         }
 
-        // Initiate or get the domain object
-        var domainObj = this.domains[this.domain] || {
-                  locales: {},
-                  instances: []
-                };
-
         // Set the locale we're about to fetch. This prevents duplicate requests by other `i18-n-domain` elements.
-        domainObj.locales[locale] = {};
-        this.domains[this.domain] = domainObj;
+        this.domains[this.domain].locales[locale] = {};
 
         var domain = this.domain != 'default' ? this.domain + '-' : '';
         var url = this.messagesUrl + '/' + domain + locale + '.json';
