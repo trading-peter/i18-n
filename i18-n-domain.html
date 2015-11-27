@@ -105,12 +105,20 @@ See the comments on the `<i18-n>` element for a simple example.
           type: String,
           value: 'lang',
           observer: '_messagesUrlChanged'
+        },
+
+        /**
+         * Reference to the global `I18nCache.domains` object
+         */
+        domains: {
+          type: Object,
+          value: function() { return window.I18nCache.domains; }
         }
       },
 
       /**
        * Initiate or get the domain object.
-       * Can't use `attached` because `_shouldFetch` may be called before it.
+       * `_shouldFetch` may be called before ready().
        */
       ready: function() {
         if (this.domains[this.domain]) {
@@ -134,11 +142,8 @@ See the comments on the `<i18-n>` element for a simple example.
       },
 
       observers: [
-        '_shouldFetch(locale, messagesUrl)'
+        '_shouldFetch(locale, messagesUrl, domains)'
       ],
-
-      // Reference to the global `I18nCache.domains` object
-      domains: window.I18nCache.domains,
 
       /**
        * Returns a message in the chosen locale and domain.
@@ -190,7 +195,8 @@ See the comments on the `<i18-n>` element for a simple example.
       /**
        * Only fetch if a locale and a location is set.
        */
-      _shouldFetch: function(newLocale, messagesUrl) {
+      _shouldFetch: function(newLocale, messagesUrl, domains) {
+        if (Object.keys(domains).indexOf(this.domain) < 0) return; // if !ready()
         if (this.getLocale(newLocale) != null) {
           this.domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
@@ -219,7 +225,7 @@ See the comments on the `<i18-n>` element for a simple example.
        * Uses `iron-ajax` to fetch the locale file.
        */
       _fetchLocale: function(locale, force) {
-        if(!locale) return;
+        if (!locale) return;
         if (this.getLocale(locale) != null && force !== true) {
           return; // Don't fetch if the locale is already defined in the global object.
         }
