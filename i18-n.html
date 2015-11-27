@@ -241,13 +241,11 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
           if (typeof msg === 'string') {
             msg = {message:msg};
             this.domains[this.domain].locales[locale][this.msgid] = msg;
-          }
-          else return null;
+          } else return this._notFound();
         }
         this._setAndProvideValue(msg.message);
       } else {
-        this._setAndProvideValue(this._placeholder);
-        console.warn(this.localName + ': "' + this.msgid + '" message id was not found');
+        this._notFound();
       }
     },
 
@@ -265,7 +263,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
           var msg = locale[msgId];
           if (!msg || !msg.message) {
             values[msgId] = this._placeholder;
-            console.warn(this.localName + ': "' + msgId + '" message id was not found');
+            this._warnNotFound(msgId);
             continue;
           }
 
@@ -279,6 +277,15 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
     _setAndProvideValue: function(msg) {
       this._setValue(this.sanitizeHtml(msg));
       this.innerHTML = !this.provider ? this.value : '';
+    },
+
+    _notFound: function() {
+      this._setAndProvideValue(this._placeholder);
+      this._warnNotFound(this.msgid);
+    },
+
+    _warnNotFound: function(id) {
+      console.warn(this.localName + ': "' + id + '" message id was not found');
     }
   });
 </script>

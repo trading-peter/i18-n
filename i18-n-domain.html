@@ -20,7 +20,9 @@ As the name suggests, this element also provides a language domain (named `defau
 
 The domain element provides some public methods to get translation strings.
 
-<strong>Note:</strong> Locale files are only fetched once.
+<strong>Notes:</strong>
+  - Locale files are only fetched once, unless the http request fails with code other than 404.
+  - If the fetch fails, will fallback to another loaded locale with priority to the initially specified one.
 
 Locale files of the `default` domain must use the locale as the filename:
 `lang/en.json`, `lang/de.json`, `lang/fr.json`
@@ -56,7 +58,8 @@ See the comments on the `<i18-n>` element for a simple example.
     <iron-ajax id="ajax"
                url="{{messagesUrl}}"
                handle-as="json"
-               on-response="_handleResponse"></iron-ajax>
+               on-response="_handleResponse"
+               on-error="_handleError"></iron-ajax>
   </template>
 </dom-module>
 <script>
@@ -91,7 +94,9 @@ See the comments on the `<i18-n>` element for a simple example.
          */
         locale: {
           type: String,
-          value: 'en'
+          value: 'en',
+          notify: true,
+          observer: '_localeChanged'
         },
 
         /**
@@ -212,6 +217,15 @@ See the comments on the `<i18-n>` element for a simple example.
       },
 
       /**
+       * Save initial locale choice and assume it's a preferred locale
+       * in case some other locale can't be loaded.
+       */
+      _localeChanged: function(newLocale, oldLocale) {
+        if (!this._preferredLocale && newLocale && !oldLocale)
+          this._preferredLocale = newLocale;
+      },
+
+      /**
        * Uses `iron-ajax` to fetch the locale file.
        */
       _fetchLocale: function(locale, force) {
@@ -240,6 +254,38 @@ See the comments on the `<i18-n>` element for a simple example.
         this._updateInstances(locale);
 
         this.fire('i18-n-locale-ready', { 'domain': this.domain, 'locale': locale });
+      },
+
+      /**
+       * Handle 404, connection error etc.
+       */
+      _handleError: function(response) {
+        var locales = this.domains[this.domain].locales;
+
+        // Fallback to some other locale.
+        // Use initially specified locale if possible.
+        // Otherwise use any available locale.
+        var keys = Object.keys(locales);
+        var fallbackLocale = keys.indexOf(this._preferredLocale) > -1
+          ? this._preferredLocale
+          : keys[0];
+
+        // Find a previously set locale = {}
+        for (var locale in locales) {
+          if (Object.keys(locales[locale]).length == 0) {
+            if (response.detail.request.status != 404) {
+              // Allow locale reload.
+              // For now fallback to another locale.
+              delete locales[locale];
+              this.locale = fallbackLocale;
+            } else {
+              // Do not allow to reload later since the locale file doesn't exist.
+              // Make a permanent fallback by reusing fallback's locale object.
+              locales[locale] = locales[fallbackLocale];
+              this._updateInstances(locale);
+            }
+          }
+        }
       },
 
       /**
