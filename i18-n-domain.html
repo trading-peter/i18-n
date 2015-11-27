@@ -22,7 +22,7 @@ The domain element provides some public methods to get translation strings.
 
 <strong>Notes:</strong>
   - Locale files are only fetched once, unless the http request fails with code other than 404.
-  - If the fetch fails, will fallback to another loaded locale with priority to the initially specified one.
+  - If the fetch fails, will fallback to a first successfully loaded locale.
 
 Locale files of the `default` domain must use the locale as the filename:
 `lang/en.json`, `lang/de.json`, `lang/fr.json`
@@ -95,8 +95,7 @@ See the comments on the `<i18-n>` element for a simple example.
         locale: {
           type: String,
           value: 'en',
-          notify: true,
-          observer: '_localeChanged'
+          notify: true
         },
 
         /**
@@ -217,15 +216,6 @@ See the comments on the `<i18-n>` element for a simple example.
       },
 
       /**
-       * Save initial locale choice and assume it's a preferred locale
-       * in case some other locale can't be loaded.
-       */
-      _localeChanged: function(newLocale, oldLocale) {
-        if (!this._preferredLocale && newLocale && !oldLocale)
-          this._preferredLocale = newLocale;
-      },
-
-      /**
        * Uses `iron-ajax` to fetch the locale file.
        */
       _fetchLocale: function(locale, force) {
@@ -249,6 +239,12 @@ See the comments on the `<i18-n>` element for a simple example.
        */
       _handleResponse: function(response) {
         var locale = response.detail.locale;
+
+        /**
+         * Save initial locale choice and assume it's a preferred locale
+         * in case some other locale can't be loaded.
+         */
+        if (!this._preferredLocale) this._preferredLocale = locale;
         this.domains[this.domain].locales[locale] = response.detail.response;
         this.domains[this.domain].activeLocale = locale;
         this._updateInstances(locale);
@@ -258,31 +254,32 @@ See the comments on the `<i18-n>` element for a simple example.
 
       /**
        * Handle 404, connection error etc.
+       * Fallback to the first loaded locale if possible.
        */
       _handleError: function(response) {
         var locales = this.domains[this.domain].locales;
 
-        // Fallback to some other locale.
-        // Use initially specified locale if possible.
-        // Otherwise use any available locale.
         var keys = Object.keys(locales);
-        var fallbackLocale = keys.indexOf(this._preferredLocale) > -1
-          ? this._preferredLocale
-          : keys[0];
-
-        // Find a previously set locale = {}
-        for (var locale in locales) {
-          if (Object.keys(locales[locale]).length == 0) {
-            if (response.detail.request.status != 404) {
-              // Allow locale reload.
-              // For now fallback to another locale.
-              delete locales[locale];
-              this.locale = fallbackLocale;
-            } else {
-              // Do not allow to reload later since the locale file doesn't exist.
-              // Make a permanent fallback by reusing fallback's locale object.
-              locales[locale] = locales[fallbackLocale];
-              this._updateInstances(locale);
+        if (keys.length == 1) {
+          // No other locales available.
+          // Just keep the placeholders and reset preffered locale.
+          delete locales[keys[0]];
+          delete this._preferredLocale;
+        } else {
+          // Find requested locale (the one previously set locale = {})
+          for (var locale in locales) {
+            if (Object.keys(locales[locale]).length == 0) {
+              if (response.detail.request.status != 404) {
+                // Allow locale reload.
+                // For now fallback to preferred locale.
+                delete locales[locale];
+                this.locale = this._preferredLocale;
+              } else {
+                // Do not allow to reload later since the locale file doesn't exist.
+                // Make a permanent fallback by reusing fallback locale object.
+                locales[locale] = locales[this._preferredLocale];
+                this._updateInstances(locale);
+              }
             }
           }
         }
