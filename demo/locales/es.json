@@ -1,6 +1,3 @@
 {
-  "welcome": {
-    "description": "The welcome text on the demo page",
-    "message": "Bienvenido a esta demo !<br><a href=\"#\" onclick=\"alert('bad stuff is going to happen...');\">Diviértete!</a>"
-  }
+  "welcome": "Bienvenido a esta demo !<br><a href=\"#\" onclick=\"alert('bad stuff is going to happen...');\">Diviértete!</a>"
 }
