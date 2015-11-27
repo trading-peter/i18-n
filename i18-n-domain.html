@@ -104,8 +104,11 @@ See the comments on the `<i18-n>` element for a simple example.
         }
       },
 
-      // Initiate or get the domain object
-      attached: function() {
+      /**
+       * Initiate or get the domain object.
+       * Can't use `attached` because `_shouldFetch` may be called before it.
+       */
+      ready: function() {
         if (this.domains[this.domain]) {
           /* Track currently attached `i18-n-domain` element.
              There may be multiple domain objects created
@@ -184,7 +187,6 @@ See the comments on the `<i18-n>` element for a simple example.
        * Only fetch if a locale and a location is set.
        */
       _shouldFetch: function(newLocale, messagesUrl) {
-        console.log(this.domain + " " + newLocale);
         if (this.getLocale(newLocale) != null) {
           this.domains[this.domain].activeLocale = newLocale;
           this._updateInstances(newLocale);
