@@ -16,6 +16,7 @@ Or see the LICENSE file that comes with this code.
   </head>
   <body>
     <!-- Provides the 'default' domain in english -->
+    <!-- Will not fetch anything until locale is specified -->
     <i18-n-domain id="i18nDomain"
       messages-url="locales">
     </i18-n-domain>
@@ -30,7 +31,8 @@ Or see the LICENSE file that comes with this code.
     <div>
       <label for="">Choose language for default domain</label>
       <select id="langSelector">
-        <option selected>en</option>
+        <option></option>
+        <option>en</option>
         <option>es</option>
         <option>fr</option>
         <option>bad</option>
@@ -71,6 +73,15 @@ Or see the LICENSE file that comes with this code.
       langSelectorDemo.addEventListener('change', function() {
         demoDomain.locale = this.value;
       });
+
+      var logEvents = function(eventName) {
+        document.addEventListener(eventName, function(e) {
+          console.log(eventName + JSON.stringify(e.detail));
+        });
+      };
+
+      logEvents('i18-n-locale-fallback');
+      logEvents('i18-n-locale-ready');
     </script>
   </body>
 </html>
