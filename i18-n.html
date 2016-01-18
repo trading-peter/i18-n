@@ -111,7 +111,8 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
        */
       msgid: {
         type: String,
-        value: null
+        value: null,
+        observer: '_init'
       },
 
       /**
@@ -120,7 +121,8 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
        */
       m: {
         type: String,
-        value: null
+        value: null,
+        observer: '_mChanged'
       },
 
       /**
@@ -129,7 +131,8 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
        */
       domain: {
         type: String,
-        value: 'default'
+        value: 'default',
+        observer: '_domainChanged'
       },
 
       /**
@@ -176,43 +179,12 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
         console.warn(this.localName + ': Global I18nCache object missing. Have you added at least one i18-n-domain element?');
         return;
       }
-
-      if (this.domain == 'default' && this.m && this.m.indexOf('.') != -1) {
-        var parts = this.m.split('.');
-        this.domain = parts[0];
-      }
-
-      this.domains = window.I18nCache.domains;
-      if (!this.domains[this.domain]) {
-        this.domains[this.domain] = {
-          locales: {},
-          instances: []
-        };
-      }
     },
 
     attached: function() {
       // Save placeholder content
       this._placeholder = this.innerHTML;
-
-      // Register instance to the domain.
-      this.domains[this.domain].instances.push(this);
-
-      if (!this.msgid && this.m) {
-        var parts = this.m.split('.');
-        if (parts.length > 0) {
-          parts.shift();
-          this.msgid = parts.join('.');
-        }
-      }
-
-      var locale = this.domains[this.domain].activeLocale || 'en';
-
-      // Update the content already here if the locale is already loaded.
-      var translations = this.domains[this.domain].locales[locale];
-      if (translations && Object.keys(translations).length > 0) {
-        this.update(locale);
-      }
+      this._init();
     },
 
     detached: function() {
@@ -246,6 +218,47 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
         this._setAndProvideValue(msg.message);
       } else {
         this._notFound();
+      }
+    },
+
+    _mChanged: function(m) {
+      if (m && m.indexOf('.') > -1) {
+        var parts = m.split('.');
+        this.domain = parts[0];
+        parts.shift();
+        this.msgid = parts.join('.');
+      }
+    },
+
+    _domainChanged: function(domain) {
+      this.domains = window.I18nCache.domains;
+      if (!this.domains[domain]) {
+        this.domains[domain] = {
+          locales: {},
+          instances: []
+        };
+      }
+
+      if (this.domains[this.domain].instances.indexOf(this) < 0) {
+        // Register instance to the domain.
+        this.domains[this.domain].instances.push(this);
+      }
+
+      this._init();
+    },
+
+    _init: function() {
+      if (!this.domain || !this.msgid) return;
+
+      var locale = this.domains[this.domain].activeLocale || 'en';
+
+      // Update the content already here if the locale is already loaded.
+      var translations = this.domains[this.domain].locales[locale];
+      if (translations && Object.keys(translations).length > 0) {
+        // Only update once when both domain and msgid changes
+        this.debounce(this.domain+this.msgid, function() {
+          this.update(locale);
+        }, 50);
       }
     },
 
