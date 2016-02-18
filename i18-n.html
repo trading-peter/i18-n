@@ -202,6 +202,8 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
      * `dom-purify-behavior` is used to sanitize the html before it's inserted.
      */
     update: function(locale) {
+
+      if (this.domain === 'zamok-customer') console.log('update', locale);
       if (this.provider && this.provide.length > 0) {
         this._updateProvider(locale);
         return;
@@ -249,6 +251,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
 
     _init: function() {
       if (!this.domain || !this.msgid) return;
+      if (Object.keys(this.domains[this.domain].locales).length === 0) return;
 
       var locale = this.domains[this.domain].activeLocale || 'en';
 
