@@ -223,6 +223,9 @@ See the comments on the `<i18-n>` element for a simple example.
         // Initiate or get the domain object.
         if (domains[domain]) {
           // Track currently attached `i18-n-domain` element.
+          if (!domains[domain].domainElements) {
+            domains[domain].domainElements = [];
+          }
           domains[domain].domainElements.push(this);
         } else {
           domains[domain] = {

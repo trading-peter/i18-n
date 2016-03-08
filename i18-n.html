@@ -109,11 +109,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
       /**
        * The message id (key) of the message to get and fill in.
        */
-      msgid: {
-        type: String,
-        value: null,
-        observer: '_init'
-      },
+      msgid: String,
 
       /**
        * Shortcut property for `domain` and `msgid`.
@@ -121,7 +117,6 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
        */
       m: {
         type: String,
-        value: null,
         observer: '_mChanged'
       },
 
@@ -129,10 +124,11 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
        * Language domain the element belongs to.
        * Only translation strings of that domain will be used.
        */
-      domain: {
-        type: String,
-        value: 'default',
-        observer: '_domainChanged'
+      domain: String,
+
+      domainObj: {
+        type: Object,
+        computed: '_computeDomainObj(domain)'
       },
 
       /**
@@ -167,8 +163,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
       }
     },
 
-    // Holds reference to the global `I18nCache.domains` object
-    domains: null,
+    observers: ['_update(domainObj, msgid)'],
 
     /**
      * Check if at least one `<i18-n-domain>` elements exists.
@@ -181,14 +176,13 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
       }
     },
 
-    attached: function() {
+    created: function() {
       // Save placeholder content
       this._placeholder = this.innerHTML;
-      this._init();
     },
 
     detached: function() {
-      var instances = this.domains[this.domain].instances;
+      var instances = this.domainObj.instances;
       for (var i = 0, li = instances.length; i < li; ++i) {
         if (instances[i] === this) {
           instances.splice(i, 1);
@@ -202,20 +196,17 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
      * `dom-purify-behavior` is used to sanitize the html before it's inserted.
      */
     update: function(locale) {
-      var translations = this.domains[this.domain].locales[locale];
-      if (!translations || Object.keys(translations).length === 0) return;
-
       if (this.provider && this.provide.length > 0) {
         this._updateProvider(locale);
         return;
       }
 
-      var msg = this.domains[this.domain].locales[locale][this.msgid];
+      var msg = this.domainObj.locales[locale][this.msgid];
       if (msg) {
         if(msg.message==undefined) {
           if (typeof msg === 'string') {
             msg = {message:msg};
-            this.domains[this.domain].locales[locale][this.msgid] = msg;
+            this.domainObj.locales[locale][this.msgid] = msg;
           } else return this._notFound();
         }
         this._setAndProvideValue(msg.message);
@@ -224,51 +215,41 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
       }
     },
 
+    _computeDomainObj: function(domain) {
+      var domains = window.I18nCache.domains;
+      if (!domains[domain]) {
+        domains[domain] = {
+          locales: {},
+          instances: [this]
+        };
+      } else {
+        domains[domain].instances.push(this);
+      }
+
+      return domains[domain];
+    },
+
+    _update: function(domain, msgid) {
+      var locale = domain.activeLocale || 'en';
+
+      // Update the content already here if the locale is already loaded.
+      var translations = domain.locales[locale];
+      if (translations && Object.keys(translations).length > 0) {
+        this.update(locale);
+      }
+    },
+
     _mChanged: function(m) {
-      if (m && m.indexOf('.') > -1) {
-        var parts = m.split('.');
-        this.domain = parts[0];
-        parts.shift();
+      if (!m) return;
+      var parts = this.m.split('.');
+      if (parts.length > 0) {
+        this.domain = parts.shift();
         this.msgid = parts.join('.');
       }
     },
 
-    _domainChanged: function(domain) {
-      this.domains = window.I18nCache.domains;
-      if (!this.domains[domain]) {
-        this.domains[domain] = {
-          locales: {},
-          instances: []
-        };
-      }
-
-      if (this.domains[this.domain].instances.indexOf(this) < 0) {
-        // Register instance to the domain.
-        this.domains[this.domain].instances.push(this);
-      }
-
-      this._init();
-    },
-
-    _init: function() {
-      if (!this.domain || !this.msgid) return;
-      if (Object.keys(this.domains[this.domain].locales).length === 0) return;
-
-      var locale = this.domains[this.domain].activeLocale;
-      if (!locale) return;
-
-      // Update the content already here if the locale is already loaded.
-      var translations = this.domains[this.domain].locales[locale];
-      if (translations && Object.keys(translations).length > 0) {
-        // Only update once when both domain and msgid changes
-        this.debounce(this.domain+this.msgid, function() {
-          this.update(locale);
-        }, 50);
-      }
-    },
-
     _updateProvider: function(locale) {
-      var locale = this.domains[this.domain].locales[locale];
+      var locale = this.domainObj.locales[locale];
       var values = {};
 
       if (this.provide[0] == '*') {
