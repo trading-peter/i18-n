@@ -182,6 +182,7 @@ In this mode the `msgid` property is ignored. Instead use the `provide` property
     },
 
     detached: function() {
+      if (!this.domainObj) return;
       var instances = this.domainObj.instances;
       for (var i = 0, li = instances.length; i < li; ++i) {
         if (instances[i] === this) {
