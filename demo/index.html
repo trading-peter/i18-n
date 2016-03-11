@@ -8,32 +8,30 @@ Or see the LICENSE file that comes with this code.
 <html>
   <head>
     <meta charset="utf-8">
-    <title>i18-n demo</title>
+    <title>f-i18n demo</title>
 
     <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
-    <link rel="import" href="../i18-n.html">
-    <link rel="import" href="../i18-n-domain.html">
+    <link rel="import" href="../f-i18n.html">
+    <link rel="import" href="../f-i18n-domain.html">
   </head>
   <body>
-    <!-- Provides the 'default' domain in english -->
+    <!-- Provides the 'default' domain -->
     <!-- Will not fetch anything until locale is specified -->
-    <i18-n-domain id="i18nDomain"
+    <f-i18n-domain id="i18nDomain"
       messages-url="locales">
-    </i18-n-domain>
+    </f-i18n-domain>
 
-    <!-- Provides the 'demo-domain' domain in german -->
-    <i18-n-domain id="demoDomain"
+    <!-- Provides the 'demo-domain' domain -->
+    <f-i18n-domain id="demoDomain"
       domain="demo-domain"
-      locale="de"
       messages-url="locales">
-    </i18-n-domain>
+    </f-i18n-domain>
 
     <div>
-      <label for="">Choose language for default domain</label>
+      <label for="langSelector">Choose language for default domain</label>
       <select id="langSelector">
         <option></option>
         <option>en</option>
-        <option>es</option>
         <option>fr</option>
         <option>bad</option>
         <option>404</option>
@@ -41,24 +39,24 @@ Or see the LICENSE file that comes with this code.
     </div>
 
     <div>
-      <label for="">Choose language for 'demo-domain' domain</label>
+      <label for="langSelectorDomain">Choose language for 'demo-domain' domain</label>
       <select id="langSelectorDomain">
+        <option></option>
         <option>en</option>
-        <option selected>de</option>
+        <option>de</option>
       </select>
     </div>
 
     <p style="margin-top: 50px;">Locale domain: <strong>default</strong></p>
 
     <!-- demo of provider -->
-    <!-- https://www.polymer-project.org/1.0/docs/devguide/templates.html#dom-bind -->
     <template is="dom-bind">
-      <i18-n provider msgid="welcome" value="{{welcome}}">This is some placeholder text. It's msgid is 'welcome'.</i18-n>
+      <f-i18n provider msgid="welcome" value="{{welcome}}">This is placeholder text, but isn't shown for provider</f-i18n>
       <p>[[welcome]]</p>
     </template>
 
     <p style="margin-top: 50px;">Locale domain: <strong>demo-domain</strong></p>
-    <i18-n m="demo-domain.special">The special text will appear here...</i18-n>
+    <f-i18n m="demo-domain.special">This is placeholder text...</f-i18n>
 
     <script>
       var i18nDomain = document.querySelector('#i18nDomain');
@@ -73,15 +71,6 @@ Or see the LICENSE file that comes with this code.
       langSelectorDemo.addEventListener('change', function() {
         demoDomain.locale = this.value;
       });
-
-      var logEvents = function(eventName) {
-        document.addEventListener(eventName, function(e) {
-          console.log(eventName + JSON.stringify(e.detail));
-        });
-      };
-
-      logEvents('i18-n-locale-fallback');
-      logEvents('i18-n-locale-ready');
     </script>
   </body>
 </html>

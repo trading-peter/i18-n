@@ -1,0 +1,181 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../dom-purify/dom-purify-behavior.html">
+<link rel="import" href="../f-singleton/f-singleton.html">
+
+<!--
+# <f-i18n>
+These elements were heavily inspired by the `<i18n-msg>` element, written by [ebidel](https://github.com/ebidel/i18n-msg).
+
+The system consists of two elements working together: `<f-i18n>` and `<f-i18n-domain>`
+
+All `<f-i18n>` elements replace their content with translated strings from a `I18nCache` global, filled by `<f-i18n-domain>` element(s).
+`<f-i18n>` elements can also define a language domain they belong to and will only be filled with translation string from that domain.
+
+<strong>Notes:</strong>
+- The language to display isn't set on the `<f-i18n>` elements but on the `<f-i18n-domain>`.
+- All assigned `<f-i18n>` elements are automatically updated after the locale was changed on the domain element.
+- Each `<f-i18n>` kowns three modes: `Simple` mode, `Simple Provider` mode and `List Provider` mode. See examples how it works.
+- Element's content (`innerHTML`) will be displayed when either:
+  - Loading the initial locale file.
+  - A translation with specified msgid is missing.
+
+## Example: Simple Mode
+
+That is, `<f-i18n>` translates exactly one message and displays it.
+
+1. Define the translation domains (just omit the `domain` attribute for the default domain). All assigned `<f-i18n>` will use the german translations.
+2. Throw `<f-i18n>` element on your page. Optionally with a domain (by default they belong to `default`).
+
+```html
+  <f-i18n-domain
+    messages-url="path/to/locales"
+    locale="de"></f-i18n-domain>
+
+  <f-i18n-domain
+    messages-url="path/to/some/other/locales"
+    domain="foobar"
+    locale="de"></f-i18n-domain>
+
+  <p>
+    <f-i18n msgid="welcome-text">This will be replaced with the welcome text from the default domain.</f-i18n>
+  </p>
+  <p>
+    <f-i18n domain="foobar" msgid="welcome-text">This will be replaced with the translation string from <strong>path/to/some/other/locales/foobar-de.json</strong></f-i18n>
+  </p>
+```
+
+## Example: Simple Provider Mode
+
+That is, `<f-i18n>` translates exactly one message but doesn't displays it.
+Insteat you use its `value` attribute to do something with the translated string, like injecting it into an attribute of another element.
+
+```html
+  Create your f-i18n-domain element here (see first example)
+
+  <p>
+    The label is set by the f-i18n.
+    <paper-input label="[[username]]"></paper-input>
+  </p>
+  <p>
+    This f-i18n doesn't show the translation but you can use it's *value* attribute.
+    <f-i18n provider domain="foobar" msgid="username" value="{{username}}"></f-i18n>
+  </p>
+```
+
+## Example: List Provider Mode
+
+That is, `<f-i18n>` translates a list of message. It doesn't show the list, but you can access it via the `value` property.
+In this mode the `msgid` property is ignored. Instead use the `provide` property to define the list you need.
+
+```html
+  Create your f-i18n-domain element here (see first example)
+
+  <p>
+    The label is set by the f-i18n.
+    <paper-input label="[[translations.username]]"></paper-input>
+    <paper-input label="[[translations.password]]"></paper-input>
+  </p>
+  <p>
+    This f-i18n provides a list of translations.
+    <f-i18n provider provide='["username", "password"]' value="{{translations}}"></f-i18n>
+    'translations' equals: { "username" : "...", "password" : "..." }
+
+    Alternatively you can set 'provide' to '["*"]' and get all translations.
+    <f-i18n provider provide='["*"]' value="{{allStrings}}"></f-i18n>
+    'allStrings' equals: { "translation1" : "...", "translation2" : "...", "translation3" : "...", "username" : "...", "password" : "..." }
+  </p>
+```
+
+@element f-i18n
+@demo demo/index.html
+@homepage https://pkaske.github.io/f-i18n
+-->
+<dom-module id="f-i18n">
+  <template>
+    <f-singleton key="[[_key]]" value="{{value}}"></f-singleton>
+    <span hidden$="[[provider]]">[[sanitizeHtml(value)]]</span>
+    <content id="content"></content>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'f-i18n',
+
+    behaviors: [
+      // Use the dom-purify-behavior to sanitize any html before it goes live.
+      Polymer.DomPurifyBehavior
+    ],
+
+    properties: {
+      /**
+       * The message id (key) of the message to get and fill in.
+       */
+      msgid: String,
+
+      /**
+       * `domain` of i18n-domain.
+       */
+      domain: {
+        type: String,
+        value: 'default'
+      },
+
+      /**
+       * Shortcut property for `domain` and `msgid`.
+       * Example: `domain-name.msgid`.
+       */
+      m: {
+        type: String,
+        observer: '_mChanged'
+      },
+
+      /**
+       * If true, the element acts as a provider.
+       */
+      provider: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Holds translated message or an object with all requested translations,
+       * depending on the mode the element operates in.
+       */
+      value: {
+        type: String,
+        notify: true
+      },
+
+      _key: { computed: '_computeKey(domain, msgid)' }
+    },
+
+    observers: ['_hidePlaceholder(provider, value)'],
+
+    _hidePlaceholder: function(provider, value) {
+      if (provider || value) {
+        var nodes = Polymer.dom(this.$.content).getDistributedNodes();
+        var me = Polymer.dom(this);
+        nodes.forEach((node)=>me.removeChild(node));
+      }
+    },
+
+    _computeKey: function(domain, msgid) {
+      return 'i18n.' + domain + '.' + msgid + '.message';
+    },
+
+    _mChanged: function(m) {
+      if (!m) return;
+      var parts = this.m.split('.');
+      if (parts.length > 0) {
+        this.domain = parts.shift();
+        this.msgid = parts.join('.');
+      }
+    }
+  });
+</script>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../f-i18n-domain.html">
+  </head>
+  <body>
+
+  <test-fixture id="f-i18n-domain-fixture">
+    <template>
+      <f-i18n-domain></f-i18n-domain>
+    </template>
+  </test-fixture>
+
+  <script>
+    'use strict'
+
+    describe(window.location.href.indexOf('dom=shadow') > -1
+    ? '[shadow] <f-i18n-domain>'
+    : '<f-i18n-domain>', () => {
+      
+      let el;
+
+      beforeEach(() => {
+        el = fixture('f-i18n-domain-fixture');
+      });
+
+    });
+  </script>
+
+</body>
+</html>

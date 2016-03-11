@@ -1,13 +1,13 @@
 {
-  "name": "i18-n",
-  "version": "1.2.2",
+  "name": "f-i18n",
+  "version": "0.1.0",
   "authors": [
     "Peter Kaske <p.kaske@gmail.com>",
-    "Christoph Sonntag <Compufreak345@gmail.com>"
+    "Christoph Sonntag <Compufreak345@gmail.com>",
+    "Martynas Kazlauskas <martynas@firmfirm.co>"
   ],
-  "description": "Translation elements build with polymer.",
+  "description": "Translation elements built with Polymer",
   "keywords": [
-    "web-component",
     "web-components",
     "polymer",
     "i18n",
@@ -16,20 +16,21 @@
     "internationalization",
     "translation"
   ],
-  "main": "i18-n-domain.html",
+  "main": "f-i18n-domain.html",
   "license": "MIT",
-  "homepage": "https://github.com/pkaske/i18-n/",
+  "homepage": "https://github.com/firmfirm/f-i18n/",
   "ignore": [
-    "/.*",
-    "/tests/"
+    "/.*"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.0.0",
-    "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
-    "dom-purify": "pkaske/dom-purify#^0.1.0"
+    "polymer": "Polymer/polymer#^1.3.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
+    "dom-purify": "pkaske/dom-purify#^0.1.0",
+    "f-singleton": "^0.2.1",
+    "promise-to-retry": "^0.2.6"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
-    "web-component-tester": "Polymer/web-component-tester#master"
+    "web-component-tester": "https://github.com/firmfirm/web-component-tester.git#a10e361"
   }
 }
