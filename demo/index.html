@@ -51,18 +51,18 @@ Or see the LICENSE file that comes with this code.
 
     <!-- demo of provider -->
     <template is="dom-bind">
-      <f-i18n provider msgid="welcome" value="{{welcome}}">This is placeholder text, but isn't shown for provider</f-i18n>
+      <f-i18n provider msgid="welcome" value="{{welcome}}" placeholder="This is placeholder text, working in provider mode"></f-i18n>
       <p>[[welcome]]</p>
     </template>
 
     <p style="margin-top: 50px;">Locale domain: <strong>demo-domain</strong></p>
-    <f-i18n m="demo-domain.special">This is placeholder text...</f-i18n>
+    <f-i18n m="demo-domain.special" placeholder="This is placeholder text in simple mode"></f-i18n>
 
     <script>
-      var i18nDomain = document.querySelector('#i18nDomain');
-      var demoDomain = document.querySelector('#demoDomain');
-      var langSelector = document.querySelector('#langSelector');
-      var langSelectorDemo = document.querySelector('#langSelectorDomain');
+      let i18nDomain = document.querySelector('#i18nDomain');
+      let demoDomain = document.querySelector('#demoDomain');
+      let langSelector = document.querySelector('#langSelector');
+      let langSelectorDemo = document.querySelector('#langSelectorDomain');
 
       langSelector.addEventListener('change', function() {
         i18nDomain.locale = this.value;

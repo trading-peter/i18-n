@@ -1,0 +1,36 @@
+language: node_js
+sudo: false
+before_script:
+- npm install -g bower polylint web-component-tester
+- bower install
+branches:
+  except:
+  - gh-pages
+env:
+  global:
+  - GH_REF: github.com/firmfirm/f-i18n.git
+  - secure: lUGETqpoeG6O6JHs70tMp32S+kW26PqoRLzyaeRbzYtC3bnr2PytoZMyKbn5mIXynZsbVkjbX6a4g43jGC8faRL7Is3f5BqiEyhZ4nFGZVIqo/Y1N31op4PwgJB3+q8y4zym3/hjlBaafN5WLhNnMHol2NxUHWcaHbS0Wfx84Qoprps+aiIaJSeignFC9Rtah+EtiIIQ+GNvfK90c42Vk1iFgbxpLavuqAYV1w9j6WroEWLy1EGGKUH1Oj1Ok6zkue366aRv7OlwrxTcNgnmlyBFrzZ5doqec+ZYdmvksq8Rk8X/r3avUkbjrrVp0NwbEgyGtJOfUIkH2RoaWZ3c3cAzmngneheaUXK7jRj5JSwY9JuQ2zMATA7LtaBbb7/48edlx/v6NpEcjqVBho/wZK1fP9z2QrIecWeMChsfEMTN+P5WpHSvO8bNMkJbYcxbOMu8GEkr0PfSLWeFkB8l2+IPpQ2CVsbtPLXZU8f5FvtttOJNkBJKU4QNqksBcZPAzPE2BIU8aCP/n6A8gMYnbNpEhuVASozkE29hknzLKlhKGGlC0rtVWRXYkNrPrQEW8epIR4UGh0Z/HYD5pgrsEAJM7Zaj+BXcUS0JfWnJnB8j3N7PwrPI3LuKgOP0xeE/XH9EejfjAhh78EY77SfRX16hwHlK662gwtpz6hQcwM8=
+  - SAUCE_USERNAME: firmfirm
+  - secure: zUj4abE4BwqA3DKM1vhA1m3a+PiRVx88HnRi1ZLoIj5Hq9iwiY8QlXrqNHJ05IUh32ziIMfgyGbtaOO+rN7J2KoitseJqIVIrr7vAyRD9981D8eqq8UI2wPSMO6tAMSna80NVmP57CM1IkQPC6GS1I+XcoJ7Xpc6AfTWZY0jAScBvV+NGe8PSw0BW5SmmJrWHK3b3NmKikIWp3d6JVTCQRoILeRKwbf/5SBnDIFx/u3ef7m3UXj8Y/YUOEhfwoc/HIipCIzn00PNPrkoDblBanm5BeJyAIE5cW6WAVWTEhwSj/9CpczngkGeisFyFTs4n2+JkDJre71oYnJ6xWwVlDsahIcMalJ+QLY3tv9EQ1UHCqGkC7vh6juYiibCAlAFPwW6e/b9XgIqSEDhk9jyGKHeM1vVAX8Bcx6ug2DaUOWNGhZZ65bvZirEEqdDhTyihwe5En1bJrk6wgMb5J8TBCpYxJ4AgpjtS4Z9gkGtxzrFz4gAhgF6kOA0gf/Q6++gZILrFWY9Rg5wnlC+qipGWiKaffNSTBqo7pYmZWPtezrP1d8Z91WQd1/ijZ9eww8+2zi3gSqvFycR07v8N6jsNa83UsJx3c21RR0cboKu5Ft7xUqySmSnuWFFTEI+bVCcI7/h5o1N6OtsDLK4/vbXV8FmNhtVngu/W6b9eC0VSWY=
+  - CXX=g++-4.8
+node_js: stable
+addons:
+  firefox: latest
+  apt:
+    sources:
+    - google-chrome
+    - ubuntu-toolchain-r-test
+    packages:
+    - google-chrome-stable
+    - g++-4.8
+  sauce_connect: true
+script:
+- polylint
+- xvfb-run wct
+- if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct -s 'default'; fi
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: master

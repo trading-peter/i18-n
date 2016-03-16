@@ -8,6 +8,7 @@
     <script src="../../web-component-tester/browser.js"></script>
 
     <link rel="import" href="../f-i18n-domain.html">
+    <link rel="import" href="./fake-f-singleton.html">
   </head>
   <body>
 
@@ -17,19 +18,120 @@
     </template>
   </test-fixture>
 
+  <script src="./chai-as-promised.js"></script>
   <script>
     'use strict'
 
     describe(window.location.href.indexOf('dom=shadow') > -1
     ? '[shadow] <f-i18n-domain>'
     : '<f-i18n-domain>', () => {
-      
-      let el;
 
-      beforeEach(() => {
-        el = fixture('f-i18n-domain-fixture');
+      let el, singleton, server;
+      let respond = (cb) => setTimeout(() => {
+        server.respond();
+        setTimeout(cb);
       });
 
+      beforeEach(() => {
+        server = sinon.fakeServer.create();
+        replace('f-singleton').with('fake-f-singleton');
+        el = fixture('f-i18n-domain-fixture');
+        singleton = el.$$('fake-f-singleton');
+        PromiseToRetry.ensure = sinon.stub().callsArg(0);
+      });
+
+      afterEach(() => {
+        server.restore();
+        PromiseToRetry.ensure.reset();
+      });
+
+      it('doesnt make requests until `locale` is set', function() {
+        expect(server.requests).to.be.empty;
+      });
+
+      it('binds `messages` to f-singleton', function() {
+        el.domain = 'mydomain';
+        expect(singleton.key).to.equal('i18n.mydomain');
+        el._setMessages('somevalue');
+        expect(singleton.value).to.equal('somevalue');
+      });
+
+      describe('with `locale`', function(done) {
+        beforeEach((done) => {
+          server.respondWith("GET", "lang/default-lt.json",
+                      [200, { "Content-Type": "application/json" },
+                      '{ "hello": {"message": "labas!"} }']);
+          server.respondWith("GET", "lang/default-en.json",
+                      [200, { "Content-Type": "application/json" },
+                      '{ "hello": {"message": "hello!"} }']);
+          el.locale = 'lt';
+          respond(done);
+        });
+
+        it('makes 1 request using PromiseToRetry.ensure', function() {
+          expect(PromiseToRetry.ensure).to.be.calledOnce;
+          expect(server.requests).to.have.lengthOf(1);
+        });
+
+        it('sets messages', function() {
+          expect(el.messages.hello.message).to.equal('labas!');
+        });
+
+        it('only makes 1 request for 1 locale', function(done) {
+          el.locale = 'en';
+          respond(function() {
+            expect(server.requests).to.have.lengthOf(2);
+            expect(el.messages.hello.message).to.equal('hello!');
+            el.locale = 'lt';
+            respond(function() {
+              expect(server.requests).to.have.lengthOf(2);
+              expect(el.messages.hello.message).to.equal('labas!');
+              done();
+            });
+          });
+        });
+
+        describe('different `messagesUrl`, 500', function() {
+          beforeEach((done) => {
+            server.respondWith("GET", "other/default-lt.json",
+                        [500, { "Content-Type": "text/plain" }, '']);
+            PromiseToRetry.ensure = sinon.stub();
+            el.messagesUrl = 'other';
+            setTimeout(done);
+          });
+
+          it('computes messages', function() {
+            expect(PromiseToRetry.ensure).to.be.calledOnce;
+            expect(server.requests).to.have.lengthOf(1);
+            expect(server.requests).to.have.lengthOf(1);
+          });
+
+          it('retries automatically', function() {
+            let promise = PromiseToRetry.ensure.args[0][0]();
+            server.respond();
+            // PromiseToRetry.ensure should automatically retry on reject
+            expect(promise).to.eventually.be.rejected;
+          });
+        });
+
+        describe('different `domain`, 404', function() {
+          beforeEach((done) => {
+            server.respondWith("GET", "lang/some-lt.json",
+                        [404, { "Content-Type": "text/plain" }, '']);
+            el.domain = 'some';
+            respond(done);
+          });
+
+          it('recomputes messages', function() {
+            expect(PromiseToRetry.ensure).to.be.calledTwice;
+            expect(server.requests).to.have.lengthOf(2);
+          });
+
+          it('sets empty messages', function() {
+            expect(Object.keys(el.messages)).to.have.lengthOf(0);
+          });
+        });
+      });
     });
   </script>
 

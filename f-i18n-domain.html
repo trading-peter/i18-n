@@ -10,34 +10,20 @@ Or see the LICENSE file that comes with this code.
 <link rel="import" href="../promise-to-retry/promise-to-retry.html">
 
 <!--
-# <f-i18n-domain>
-These elements were heavily inspired by the `<i18n-msg>` element,
-written by [ebidel](https://github.com/ebidel/i18n-msg) and `<f-i18n>`,
-written by [pkaske](https://github.com/pkaske/f-i18n).
+# f-i18n-domain
 
-The system consists of two elements working together: `<f-i18n>` and `<f-i18n-domain>`
+Element to describe a set of localized messages.
 
-You need at least one `<f-i18n-domain>` in your document.
-It loads the locale file via `<iron-ajax>` and fills a `I18nCache` global with the translation strings.
-As the name suggests, this element also provides a language domain (named `default` if no other was set).
+## Notes
 
-`<f-i18n>` elements can define a language domain they belong to and
-will only be filled with translation string from that domain.
+  - All `<f-i18n>` are automatically updated when locale changes on their domain element.
+  - Each locale file is only fetched once.
+  - Will automatically retry to fetch unless the request fails with code other than 404.
+  - Locale files must be in Chrome's [`messages.json`](https://developer.chrome.com/extensions/i18n-messages) format.
+    Currently only `"message"` is used.
+  - Locale file name must have format of [domain]-[locale].json
 
-The domain element provides some public methods to get translation strings.
-
-<strong>Notes:</strong>
-  - Locale files are only fetched once, unless the http request fails with code other than 404.
-  - If the fetch fails, will fallback to a first successfully loaded locale.
-
-Locale files of the `default` domain must use the locale as the filename:
-`lang/en.json`, `lang/de.json`, `lang/fr.json`
-
-Locale files of any domain other than `default` must prepend the domain name followed by a `-`:
-
-"`lang/mydomain-en.json`", "`lang/mydomain-de.json`" or "`lang/mydomain-fr.json`"
-
-### Example of a locale file
+## Example of a locale file
 
 ```json
 {
@@ -47,24 +33,22 @@ Locale files of any domain other than `default` must prepend the domain name fol
   },
   "goodbye-text": {
     "message": "Goodbye!"
-  },
-  "no-description-text": "You may use a more concise syntax like this, but it won't be compatible with Chrome's messages.json (see https://developer.chrome.com/extensions/i18n-messages)"
+  }
 }
 ```
 
 ## Example
-See the comments on the `<f-i18n>` element for a simple example.
+
+See docs of [`<f-i18n>`](#f-i18n) element.
 
 @element f-i18n-domain
 @demo demo/index.html
-@homepage https://pkaske.github.io/f-i18n
+@homepage https://firmfirm.github.io/f-i18n
 -->
 <dom-module id="f-i18n-domain">
   <template>
-    <!-- Saving all locales to not re-fetch -->
-    <f-singleton key="[[_localeKey]]" value="{{_locale}}"></f-singleton>
-    <!-- <f-i18n> uses the same to get messages -->
-    <f-singleton key="[[_domainKey]]" value="{{_domain}}"></f-singleton>
+    <!-- <f-i18n> uses the same key to get messages -->
+    <f-singleton key="[[_messagesKey]]" value="{{messages}}"></f-singleton>
     <iron-ajax id="ajax" handle-as="json"></iron-ajax>
   </template>
 </dom-module>
@@ -89,45 +73,52 @@ See the comments on the `<f-i18n>` element for a simple example.
         },
 
         /**
-         * The path to directory of localized `domain-<lang>.json` files.
+         * The path to directory of `[domain]-[locale].json` files.
          */
         messagesUrl: {
           type: String,
           value: 'lang'
         },
 
-        _localeKey: { computed: '_computeLocaleKey(domain, locale)' },
-        _domainKey: { computed: '_computeDomainKey(domain)' },
-        _locale: Object,
-        _domain: Object
+        messages: {
+          type: Object,
+          readOnly: true
+        },
+
+        _messagesKey: { computed: '_computeMessagesKey(domain)' },
+        _cached: { computed: '_computeCached(messagesUrl, domain, locale)' }
       },
 
-      observers: ['_initLocale(messagesUrl, domain, locale)'],
+      observers: [ '_computeMessages(messagesUrl, domain, locale, _cached)' ],
 
-      _computeLocaleKey: (domain, locale) => `i18n.domains.${domain}.${locale}`,
-      _computeDomainKey: (domain) => `i18n.${domain}`,
+      _computeMessagesKey: (domain) => `i18n.${domain}`,
 
-      _initLocale: function(url, domain, locale) {
+      _computeCached: function(url, domain, locale) {
+        if (!this._cache) this._cache = {};
+        if (!this._cache[url]) this._cache[url] = {};
+        if (!this._cache[url][domain]) this._cache[url][domain] = {};
+        return this._cache[url][domain][locale] || null;
+      },
+
+      _computeMessages: function(url, domain, locale, cached) {
         // Ignore empty or null values
         if (!url || !domain || !locale) return;
 
-        // Async to make sure _locale is in sync with new domain name
-        this.async(function() {
-          if (this._locale) {
+        this.debounce(url+domain+locale, function() {
+          if (cached) {
             // Already fetched
-            this._domain = this._locale;
+            this._setMessages(cached);
           } else {
+            let _done = (m) =>
+              this._setMessages(this._cache[url][domain][locale] = m);
             this.$.ajax.url = `${url}/${domain}-${locale}.json`;
             // Automatically retry failed requests
             PromiseToRetry.ensure(() => {
-              var req = this.$.ajax.generateRequest();
-              return req.completes.then(() => {
-                this._domain = req.response;
-                this._locale = req.response;
-              }).catch(() => {
-                // Don't retry 404s
-                if (req.status !== 404) throw req;
-              });
+              let req = this.$.ajax.generateRequest();
+              return req.completes.then(() => _done(req.response))
+                                  .catch(() => req.status === 404
+                                    ? _done({})
+                                    : Promise.reject());
             }, (detail) => console.warn('Failed to fetch locale',
                                         this.$.ajax.url, detail));
           }

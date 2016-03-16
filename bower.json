@@ -2,9 +2,9 @@
   "name": "f-i18n",
   "version": "0.1.0",
   "authors": [
+    "Martynas Kazlauskas <martynas@firmfirm.co>",
     "Peter Kaske <p.kaske@gmail.com>",
-    "Christoph Sonntag <Compufreak345@gmail.com>",
-    "Martynas Kazlauskas <martynas@firmfirm.co>"
+    "Eric Bidelman <ebidel@>"
   ],
   "description": "Translation elements built with Polymer",
   "keywords": [
