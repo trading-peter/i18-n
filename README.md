@@ -1,4 +1,4 @@
-# `<f-i18n>`
+# `<f-i18n>` [![Build Status](https://travis-ci.org/firmfirm/f-i18n.svg?branch=master)](https://travis-ci.org/firmfirm/f-i18n)
 
 These elements were heavily inspired by [`<i18-n>`](https://github.com/pkaske/i18-n), written by *pkaske*.
 
