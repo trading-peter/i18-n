@@ -1,0 +1,129 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../f-singleton/f-singleton.html">
+<link rel="import" href="../promise-to-retry/promise-to-retry.html">
+
+<!--
+# f-i18n-domain
+
+Element to describe a set of localized messages.
+
+## Notes
+
+  - All `<f-i18n>` are automatically updated when locale changes on their domain element.
+  - Each locale file is only fetched once.
+  - Will automatically retry to fetch unless the request fails with code other than 404.
+  - Locale files must be in Chrome's [`messages.json`](https://developer.chrome.com/extensions/i18n-messages) format.
+    Currently only `"message"` is used.
+  - Locale file name must have format of [domain]-[locale].json
+
+## Example of a locale file
+
+```json
+{
+  "welcome-text": {
+    "description": "some description for internal use (optional)",
+    "message": "Welcome!"
+  },
+  "goodbye-text": {
+    "message": "Goodbye!"
+  }
+}
+```
+
+## Example
+
+See docs of [`<f-i18n>`](#f-i18n) element.
+
+@element f-i18n-domain
+@demo demo/index.html
+@homepage https://firmfirm.github.io/f-i18n
+-->
+<dom-module id="f-i18n-domain">
+  <template>
+    <!-- <f-i18n> uses the same key to get messages -->
+    <f-singleton key="[[_messagesKey]]" value="{{messages}}"></f-singleton>
+    <iron-ajax id="ajax" handle-as="json"></iron-ajax>
+  </template>
+</dom-module>
+<script>
+  (function () {
+
+    Polymer({
+      is: 'f-i18n-domain',
+
+      properties: {
+        /**
+         * Locale being used.
+         */
+        locale: String,
+
+        /**
+         * Name of i18n messages group.
+         */
+        domain: {
+          type: String,
+          value: 'default'
+        },
+
+        /**
+         * The path to directory of `[domain]-[locale].json` files.
+         */
+        messagesUrl: {
+          type: String,
+          value: 'lang'
+        },
+
+        messages: {
+          type: Object,
+          readOnly: true
+        },
+
+        _messagesKey: { computed: '_computeMessagesKey(domain)' },
+        _cached: { computed: '_computeCached(messagesUrl, domain, locale)' }
+      },
+
+      observers: [ '_computeMessages(messagesUrl, domain, locale, _cached)' ],
+
+      _computeMessagesKey: (domain) => `i18n.${domain}`,
+
+      _computeCached: function(url, domain, locale) {
+        if (!this._cache) this._cache = {};
+        if (!this._cache[url]) this._cache[url] = {};
+        if (!this._cache[url][domain]) this._cache[url][domain] = {};
+        return this._cache[url][domain][locale] || null;
+      },
+
+      _computeMessages: function(url, domain, locale, cached) {
+        // Ignore empty or null values
+        if (!url || !domain || !locale) return;
+
+        this.debounce(url+domain+locale, function() {
+          if (cached) {
+            // Already fetched
+            this._setMessages(cached);
+          } else {
+            let _done = (m) =>
+              this._setMessages(this._cache[url][domain][locale] = m);
+            this.$.ajax.url = `${url}/${domain}-${locale}.json`;
+            // Automatically retry failed requests
+            PromiseToRetry.ensure(() => {
+              let req = this.$.ajax.generateRequest();
+              return req.completes.then(() => _done(req.response))
+                                  .catch(() => req.status === 404
+                                    ? _done({})
+                                    : Promise.reject());
+            }, (detail) => console.warn('Failed to fetch locale',
+                                        this.$.ajax.url, detail));
+          }
+        });
+      }
+    });
+  })();
+</script>

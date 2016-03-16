@@ -1,0 +1,143 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../dom-purify/dom-purify-behavior.html">
+<link rel="import" href="../f-singleton/f-singleton.html">
+<link rel="import" href="./f-i18n-domain.html">
+
+<!--
+# f-i18n
+
+Element to get and/or display a localized message.
+
+## Notes
+
+  - The language to display isn't set on the `<f-i18n>` elements but on the [`<f-i18n-domain>`](#f-i18n-domain).
+  - `placeholder` value will be used until locale is loaded,
+    or when a translation or locale file is missing.
+
+## Example
+
+1. Initialize the `<f-i18n-domain>` domains.
+
+  ```html
+  // Will use the translations from `path/to/locales/default-de.json`
+  <f-i18n-domain
+    messages-url="path/to/locales"
+    locale="de"></f-i18n-domain>
+
+  // Will use the translations from `other/path/foobar-en.json`
+  <f-i18n-domain
+    messages-url="other/path"
+    domain="foobar"
+    locale="en"></f-i18n-domain>
+  ```
+
+2. Use `<f-i18n>` to get the translations.
+
+  ```html
+  // Message from "default" domain, with key "welcome".
+  // Will display placeholder text until translation is loaded.
+  <f-i18n msgid="welcome" placeholder="Welcome!"></f-i18n>
+
+  // Message from "foobar" domain, with key "hello".
+  // Will not display any text, but set and notify "value" property.
+  <f-i18n provider m="foobar.hello" placeholder="Hello!" value="{{msgHello}}"></f-i18n>
+  <p>[[msgHello]]</p>
+  ```
+
+@element f-i18n
+@demo demo/index.html
+@homepage https://firmfirm.github.io/f-i18n
+-->
+<dom-module id="f-i18n">
+  <template>
+    <f-singleton key="[[_messageKey]]" value="{{_value}}"></f-singleton>
+    <span hidden$="[[provider]]">[[sanitizeHtml(value)]]</span>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'f-i18n',
+
+    behaviors: [
+      // Use the dom-purify-behavior to sanitize any html before it goes live.
+      Polymer.DomPurifyBehavior
+    ],
+
+    properties: {
+      /**
+       * The message id (key) of the message.
+       */
+      msgid: String,
+
+      /**
+       * `domain` of i18n-domain.
+       */
+      domain: {
+        type: String,
+        value: 'default'
+      },
+
+      /**
+       * Shortcut property for `domain` and `msgid`.
+       * Example: `domain-name.msgid`.
+       */
+      m: {
+        type: String,
+        observer: '_mChanged'
+      },
+
+      /**
+       * If true, the element doesn't display any content.
+       */
+      provider: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Translated message or placeholder value.
+       */
+      value: {
+        type: String,
+        notify: true,
+        computed: '_computeValue(_value, placeholder)'
+      },
+
+      /**
+       * Message to use until locale is loaded.
+       */
+      placeholder: {
+        type: String,
+        value: null
+      },
+
+      _value: String,
+
+      _messageKey: { computed: '_computeMessageKey(domain, msgid)' }
+    },
+
+    _computeValue: function(value, placeholder) {
+      if (value) return value;
+      return placeholder;
+    },
+
+    _computeMessageKey: function(domain, msgid) {
+      return 'i18n.' + domain + '.' + msgid + '.message';
+    },
+
+    _mChanged: function(m) {
+      if (!m) return;
+      let parts = this.m.split('.');
+      if (parts.length > 0) {
+        this.domain = parts.shift();
+        this.msgid = parts.join('.');
+      }
+    }
+  });
+</script>

@@ -1,0 +1,6 @@
+{
+  "bad-key": {
+    "description": "Needed to demonstrate what happens when there is no requested key",
+    "message": "You shouldn't see this message"
+  }
+}

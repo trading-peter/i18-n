@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../f-i18n.html">
+    <link rel="import" href="./fake-f-singleton.html">
+  </head>
+  <body>
+
+  <test-fixture id="f-i18n-fixture">
+    <template>
+      <f-i18n></f-i18n>
+    </template>
+  </test-fixture>
+
+  <script>
+    'use strict'
+
+    describe(window.location.href.indexOf('dom=shadow') > -1
+    ? '[shadow] <f-i18n>'
+    : '<f-i18n>', () => {
+
+      let el, s;
+
+      beforeEach(() => {
+        replace('f-singleton').with('fake-f-singleton');
+        el = fixture('f-i18n-fixture');
+        s = el.$$('fake-f-singleton');
+        s.value = null;
+      });
+
+      it('`m` sets msgid and domain', () => {
+        el.m = 'other.msgid.nested';
+        expect(el.domain).to.equal('other');
+        expect(el.msgid).to.equal('msgid.nested');
+      });
+
+      it('binds to proper singleton key', () => {
+        el.domain = 'domain';
+        el.msgid = 'msgid';
+        expect(s.key).to.equal('i18n.domain.msgid.message');
+      });
+
+      describe('content', () => {
+        let span;
+
+        beforeEach(() => span = el.$$('span'));
+
+        it('[provider] hides content', () => {
+          expect(span.hidden).to.be.false;
+          el.provider = true;
+          expect(span.hidden).to.be.true;
+        });
+
+        it('doesnt have any by default', () => {
+          expect(span.textContent).to.equal('');
+        });
+
+        it('shows placeholder', () => {
+          el.placeholder = 'placeholder';
+          expect(span.textContent).to.equal('placeholder');
+        });
+
+        it('shows value, which has priority', () => {
+          s.value = 'sval';
+          expect(span.textContent).to.equal('sval');
+          el.placeholder = 'place';
+          expect(span.textContent).to.equal('sval');
+        });
+
+        it('shows placeholder', () => {
+          el.placeholder = '<p onload="badstuff"></p>';
+          expect(span.textContent).to.equal('<p></p>');
+        });
+      });
+
+      describe('[value]', () => {
+
+        it('doesnt have any by default', () => {
+          expect(el.value).to.be.null;
+        });
+
+        it('equal to placeholder', () => {
+          el.placeholder = 'placeholder';
+          expect(el.value).to.equal('placeholder');
+        });
+
+        it('equal to singletons value, which has priority', () => {
+          s.value = 'sval';
+          expect(el.value).to.equal('sval');
+          el.placeholder = 'place';
+          expect(el.value).to.equal('sval');
+        });
+
+      });
+
+    });
+  </script>
+
+</body>
+</html>
